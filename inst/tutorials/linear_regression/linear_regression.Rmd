@@ -25,7 +25,7 @@ To what extent maternal weight at last menstural cycle is associated with birth 
 
 ## Descriptive statistics
 #### Loading necessary libraries (aplore3, tidyverse, tableone, stargazer) and dataset. 
-These libraries are installed as part of the 'modlue6' package. 
+If the following libraries are not installed in your system. Install them first and then run this tutorial.  
 
 ```{r libs, exercise.eval=TRUE}
 library(aplore3)
