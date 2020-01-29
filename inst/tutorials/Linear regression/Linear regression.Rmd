@@ -1,0 +1,315 @@
+---
+title: "Linear regression"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = TRUE)
+tutorial_options(exercise.timelimit=40)
+
+library(aplore3)
+library(tidyverse)
+library(tableone)
+library(stargazer)
+```
+
+
+## Context 
+Low birth weight is defined as birth weight less than 2500 grams. Infant mortality rates and birth defect rates are higher among low birth weight babies. Maternal behavior during pregnancy (including diet, smoking habits, and receiving prenatal care) can greatly alter the chances of of delivering a baby of normal birth weight. 
+Data for 189 births to women reporting at Baystate Medical Center in Springfield, Massachusetts. The data is included as part of [Hosmer, Lememshow, Sturdivant. *Applied Logistic regression- 3rd edition*.](https://www.wiley.com/en-ca/Applied+Logistic+Regression,+3rd+Edition-p-9780470582473) A modified version of data is available from 'aplore3' package. 
+We will use this data to understand the process of fitting a multiple linear regression. 
+
+### Research question
+To what extent maternal weight at last menstural cycle is associated with birth weight of their babies among a sample Massachusett women. 
+
+
+## Descriptive statistics
+#### Loading necessary libraries (aplore3, tidyverse, tableone, stargazer) and dataset. 
+These libraries are installed as part of the 'modlue6' package. 
+
+```{r libs, exercise.eval=TRUE}
+library(aplore3)
+library(tidyverse)
+library(tableone)
+library(stargazer)
+library(skimr)
+
+data("lowbwt")
+```
+
+#### Exploring the data descriptively 
+**Exercise 1:** Output a basic structure of the data
+```{r desc1, exercise=TRUE, exercise.lines=2 }
+
+```
+
+```{r desc1-solution}
+str(lowbwt)
+```
+
+**You can also use the skim library to have more detailed descriptive**
+Skim produces tables according to type of the variable.
+```{r desc2, exercise=TRUE}
+skimr::skim(lowbwt)
+```
+
+#### Variable dictionary
+
+| variables | description                                        |
+|----------:|:---------------------------------------------------|
+| id        | Unique identifier                                  |
+| age       | mother's age at delivery                           |
+| lwt       | weight at last menstrual period                    |
+| ftv       | number of visits to physician during 1st trimester |
+| race      | race                                               |
+| smoke     | smoked during pregnancy                            |
+| ptl       | premature labor history (count)                    |
+| ht        | has history of hypertension                        |
+| ui        | presence, uterine irritability                     |
+| bwt       | birthweight (grams)                                |
+| low       | birthweight<2500g                                  |
+
++ There are 11 variables and 189 participants. 
++ There are no missing values in any of the variables
++ ht, low, smoke, and ui are dichotomous variables
++ ftv and race variables have more than 2 categories
++ age, bwt, and lwt are continuous variables
++ age of mothers range from 14 to 45 years
++ also birht weight of babies ranges from 709 to 4990 grams
+
+ variables seems to have some extreme values – maternal age of 45 and some teen pregnancies; weight at last menstrual cycle >200 ponds; and some low birth weights – 709 grams. 
+
+**We can also visually inspect the distribution of variables** 
+Boxplot shows a 5 point summary of the distribution and qqplot show the normality of the variable.
+```{r boxp1, exercise=TRUE, exercise.eval=TRUE}
+par(mfrow=c(1,2))
+boxplot(lowbwt$age, main="Boxplot of age")
+qqnorm(lowbwt$age, main="Q-Q plot of age")
+qqline(lowbwt$age)
+```
+
+**Exercise 2:** create boxplots and qqplots for lwt and bwt variables. Put these plots in a 1by2 layout.
+```{r boxp2, exercise=TRUE, exercise.lines=10}
+
+```
+
+```{r boxp2-solution}
+par(mfrow=c(1,2))
+boxplot(lowbwt$lwt, main="Boxplot of lwt")
+qqnorm(lowbwt$lwt, main="Q-Q plot of lwt")
+qqline(lowbwt$lwt)
+
+
+boxplot(lowbwt$bwt, main="Boxplot of bwt")
+qqnorm(lowbwt$bwt, main="Q-Q plot of bwt")
+qqline(lowbwt$bwt)
+```
+
+As expected box-plots shows outliers. And QQ plot of weight hints us towards a non-normality of this variable. The other two variable seems to be fairly normal. 
+
+**We can also see the tabulation of the categorical variables**   
+Tableone package provides a quick way to create tables. We can store the table as a 'tab1' object and print it. 
+```{r tab1, exercise=TRUE, exercise.eval=F}
+
+tab1 <- CreateTableOne(data=lowbwt, 
+               vars=c("ftv","ht","low","ptl"), 
+               includeNA = TRUE) 
+
+print(tab1, showAllLevel=TRUE)
+```
+
+**Exercise 3:** create table of the following variables race, smoke, ui. Store the table as objecct tab2 and print it.
+```{r tab2, exercise=TRUE, exercise.line=6}
+
+```
+
+```{r tab2-solution}
+tab2 <- CreateTableOne(data=lowbwt, 
+               vars=c("race","smoke","ui"), 
+               includeNA = TRUE) 
+
+print(tab2, showAllLevel=TRUE)
+```
+
+### Exploring patterns
+
+#### Continuous variables
+We can use graphs to explore the raw patterns in the data
+Scatterplot between continuous variables in the dataset can give us an idea about their correlation.
+
+```{r cor0, exercise=TRUE, exercise.eval=TRUE}
+plot(lowbwt$age, lowbwt$lwt)
+```
+
+'pairs' command allow us to quickly create scatter plots between a pair of variable in the data. The input is a matrix/data.frame so we need to select those subset of variables. 
+
+**Exercise 4**: create pairwise scatter plots for 'age', 'lwt', and 'bwt'
+```{r cor1, exercise=TRUE}
+
+```
+
+```{r cor1-solution}
+pairs(lowbwt[,c("age","lwt","bwt")])
+```
+
+**Exercise 5:** calculate the pearson correlation coefficient between 'age', 'lwt', and 'bwt'
+```{r cor2, exercise=TRUE, exercise.lines=3}
+
+```
+
+```{r cor2-solution}
+cor(lowbwt[,c("age","lwt","bwt")])
+```
+
+From both scatter plots and the estimates of correlation coefficient, we can see that there is only mild correlation between these variables. 
+
+#### Categorical variables
+
+Boxplots is one way to see the distribution of a continuous variable by categories of another variable. 
+We can plot the variable bwt (our outcome of interest) by categories of ftv and ht as below.
+```{r boxp3, exercise=TRUE, exercise.eval=TRUE}
+par(mfrow=c(1,2))
+
+boxplot(bwt~ftv, data=lowbwt, col=heat.colors(2),  ylab="birth weight", xlab="First trimester visits")
+
+boxplot(bwt~ht, data=lowbwt, col=terrain.colors(3), ylab="birth weight", xlab="Hypertension")
+```
+
+**Exercise 6:** create boxplot of bwt by categories of plt, race, ui and smoke variables. Try to use different ways of mentioning colors.
+```{r boxp4, exercise=TRUE, exercise.lines=10}
+
+```
+
+```{r boxp4-solution}
+par(mfrow=c(1,2))
+
+boxplot(bwt~ptl, data=lowbwt, col=c("red","blue"), ylab="birth weight", xlab="Pre term birth history")
+
+boxplot(bwt~race, data=lowbwt, col=c("#8A2BE2", "#458B00", "#1E90FF"), ylab="birth weight", xlab="Race" )
+
+boxplot(bwt~ui, data=lowbwt, col=rainbow(2), ylab="birth weight", xlab="Uterine irritability")
+
+boxplot(bwt~smoke, data=lowbwt, col=c("yellow", "green"), ylab="birth weight", xlab="Smoke")
+
+```
+ 
+
+## Simple linear regressions 
+The function to fit a linear regression in R is 'lm' (short for linear model). The main component of this function is the formula. The formula has two part: left hand side (dependent/outcome variable) and right hand side (independent/exposure variables).
+
+**Exercise 7:** see the help file for the function lm
+```{r help1, exercise=TRUE}
+
+```
+
+Let us fit a simple linear regression between birth weight and age. And print the output.
+First we store the results as an object - lm1. And print its summary to look at the results.
+```{r lm1, exercise=TRUE, exercise.eval=TRUE}
+lm1 <- lm(bwt~age, data=lowbwt)
+
+summary(lm1)
+```
+
+**Exercise 8:** try to run the above regression without saving it into an object. What is the difference?
+```{r lm1e1, exercise=TRUE}
+
+```
+
+```{r lm1e1-solution}
+lm(bwt~age, data=lowbwt)
+```
+
+#### Stargazer package
+The summary above do not include confidence intervals. We can use stargazer package to get nicely formated tables of the regression output. Just for clarity, first, we fit the regression again.
+```{r lm1s, exercise=TRUE, exercise.eval=TRUE}
+
+lm1 <- lm(bwt~age, data=lowbwt)
+
+stargazer(lm1, type="text", report="vcs", ci=TRUE, omit.table.layout ="n", omit.stat = "f")
+```
+
+**Exercise 9:** rerun the stargazer again without any options except the 'type="text"', see what is the difference from the above output.
+```{r lm1s2, exercise=TRUE}
+
+```
+
+```{r lm1s2-solution}
+lm1 <- lm(bwt~age, data=lowbwt)
+
+stargazer(lm1, type="text")
+```
+
+The default options do not produce confidence intervals instead show the standard error estimates. And also show the p-values. Also, the default output of stargazer is as latex format so use type="text".
+
+Additional advantage of stargazer package is that you can easly create tables from several regression models.
+
+```{r lm2, exercise=TRUE}
+
+lm2 <- lm(bwt~ftv, data=lowbwt)
+
+lm3 <- lm(bwt~ht, data=lowbwt)
+
+lm4 <- lm(bwt~ui, data=lowbwt)
+
+stargazer(lm2, lm3, lm4, type="text", report="vcs", ci=TRUE, omit.table.layout ="n", omit.stat = "f")
+
+```
+
+**Exercise 10**: fit 3 simple linear regressions with bwt as the dependent variable and plt, race, lwt as the independent variables. Use stargazer package to create regression output table.
+
+```{r lm3, exercise=TRUE}
+
+```
+
+```{r lm3-solution}
+lm5 <- lm(bwt~ptl, data=lowbwt)
+
+lm6 <- lm(bwt~race, data=lowbwt)
+
+lm7 <- lm(bwt~lwt, data=lowbwt)
+
+stargazer(lm5,lm6, lm7, type="text", report="vcs", ci=TRUE, omit.table.layout ="n", omit.stat = "f")
+
+```
+
+
+Take note that history of hypertension(ht), uterine infection(ui), premature delivery(ptl)
+and smoking(smoke) are negatively related (reduces it) to birth weight (bwt). Whereas, weight
+at last menstrual period has a positive relationship with bwt (increases it). We will keep all these in mind while fitting multiple linear regression.
+
+
+## Multiple linear regression 
+Indpendent variables in a multiple regression is known as covariates. Covariates most often consists of potential confounders identified through a DAG relevent to the research question. 
+
+For pedagogical purpose, we will assume that maternal age (age), number of visits to physician during 1st trimester (ftv), maternal hypertension (ht), uterine infection (ui), maternal smoking, and race consists the minimum set of counfounders identified from a DAG.
+
+Covariates can be included in regression models using '+' sign. 
+Also stargazer works with multiple regressions too.
+
+```{r mlr1, exercise=TRUE}
+mlr <- lm(bwt~ age + ftv + ptl + ht + ui + race + lwt, data=lowbwt)
+
+stargazer(mlr, type="text", report="vcs", omit.table.layout ="n", ci=TRUE, omit.stat="f")
+```
+
+**Exercise 11:** add 'smoke' variable to the regression as a covariate. Refit the model and print the output using stargazer 
+
+```{r mlr2, exercise=TRUE}
+
+```
+
+```{r mlr2-solution}
+mlr2 <- lm(bwt~ age + ftv + ptl + ht + ui + race + smoke + lwt, data=lowbwt)
+
+stargazer(mlr2, type="text", report="vcs", omit.table.layout ="n", ci=TRUE, omit.stat="f")
+
+```
+
+
+### Interpretation
+
+Although the output shows estimates of coefficients for all covariate, because the (hypothetical) DAG was developed for a particular exposure of interest (lwt) we will only interpret the corresponding coefficient. 
+
++ One pound increase in maternal weight, at last menstural cycle before pregnancy, was associated with 4.8 grams (95\%CI = 1.4, 8.2) increase in average birthweight of babies, when all other covariates are constant. 
