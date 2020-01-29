@@ -18,6 +18,7 @@ tutorial_options(exercise.timelimit=40)
 Low birth weight is defined as birth weight less than 2500 grams. Infant mortality rates and birth defect rates are higher among low birth weight babies. Maternal behavior during pregnancy (including diet, smoking habits, and receiving prenatal care) can greatly alter the chances of of delivering a baby of normal birth weight. 
 
 Data for 189 births to women reporting at Baystate Medical Center in Springfield, Massachusetts. The data is included as part of [Hosmer, Lememshow, Sturdivant. *Applied Logistic regression- 3rd edition*.](https://www.wiley.com/en-ca/Applied+Logistic+Regression,+3rd+Edition-p-9780470582473) A modified version of data is available from 'aplore3' package. 
+
 We will use this data to understand the process of fitting a multiple linear regression. 
 
 ### Research question
