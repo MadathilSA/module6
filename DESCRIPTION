@@ -9,6 +9,6 @@ Description: This package uses learnr interactive tutorials to help understand i
 License: Free
 Encoding: UTF-8
 LazyData: true
-Imports:learnr,shiny,stargazer,aplore3,skimr
+Imports:tidyverse, skimr, shiny, stargazer, aplore3, learnr 
 
   
