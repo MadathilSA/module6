@@ -5,8 +5,8 @@ Version: 0.1.0
 Author: Sreenath Madathil
 Maintainer: The package maintainer <sreenath.madathil@mcgill.ca>
 Description: This package uses learnr interactive tutorials to help understand implementation of select traditional statistical models.
-    Included tutorials for : i) linear regression
-License: Free
+    Included tutorials for : i) linear regression.
+License: MIT
 Encoding: UTF-8
 LazyData: true
 Imports:tidyverse, skimr, shiny, stargazer, aplore3, learnr 
