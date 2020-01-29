@@ -6,13 +6,11 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
-knitr::opts_chunk$set(echo = TRUE)
-tutorial_options(exercise.timelimit=40)
-
 library(aplore3)
-library(tidyverse)
 library(tableone)
 library(stargazer)
+knitr::opts_chunk$set(echo = TRUE)
+tutorial_options(exercise.timelimit=40)
 ```
 
 
@@ -31,10 +29,8 @@ These libraries are installed as part of the 'modlue6' package.
 
 ```{r libs, exercise.eval=TRUE}
 library(aplore3)
-library(tidyverse)
 library(tableone)
 library(stargazer)
-library(skimr)
 
 data("lowbwt")
 ```
@@ -49,11 +45,6 @@ data("lowbwt")
 str(lowbwt)
 ```
 
-**You can also use the skim library to have more detailed descriptive**
-Skim produces tables according to type of the variable.
-```{r desc2, exercise=TRUE}
-skimr::skim(lowbwt)
-```
 
 #### Variable dictionary
 
