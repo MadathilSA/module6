@@ -9,6 +9,6 @@ Description: This package uses learnr interactive tutorials to help understand i
 License: MIT
 Encoding: UTF-8
 LazyData: true
-Imports:stargazer, aplore3, learnr, tableone
+Imports:rlang (>= 0.4.2), stargazer, aplore3, learnr, tableone
 
   
