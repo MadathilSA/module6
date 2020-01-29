@@ -224,7 +224,6 @@ library(skimr)</code></pre>
 boxplot(lowbwt$age, main=&quot;Boxplot of age&quot;)
 qqnorm(lowbwt$age, main=&quot;Q-Q plot of age&quot;)
 qqline(lowbwt$age)</code></pre>
-<img src="Linear-regression_files/figure-html/boxp1-1.png" width="624" />
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.timelimit":40,"exercise.checker":"NULL"}</script>
 </div>
 <strong>Exercise 2:</strong> create boxplots and qqplots for lwt and bwt variables. Put these plots in a 1by2 layout.
@@ -272,7 +271,6 @@ print(tab2, showAllLevel=TRUE)</code></pre>
 <p>We can use graphs to explore the raw patterns in the data Scatterplot between continuous variables in the dataset can give us an idea about their correlation.</p>
 <div class="tutorial-exercise" data-label="cor0" data-caption="Code" data-completion="1" data-diagnostics="1" data-startover="1" data-lines="0">
 <pre class="text"><code>plot(lowbwt$age, lowbwt$lwt)</code></pre>
-<img src="Linear-regression_files/figure-html/cor0-1.png" width="624" />
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.timelimit":40,"exercise.checker":"NULL"}</script>
 </div>
 <p>‘pairs’ command allow us to quickly create scatter plots between a pair of variable in the data. The input is a matrix/data.frame so we need to select those subset of variables.</p>
@@ -301,7 +299,6 @@ Boxplots is one way to see the distribution of a continuous variable by categori
 boxplot(bwt~ftv, data=lowbwt, col=heat.colors(2),  ylab=&quot;birth weight&quot;, xlab=&quot;First trimester visits&quot;)
 
 boxplot(bwt~ht, data=lowbwt, col=terrain.colors(3), ylab=&quot;birth weight&quot;, xlab=&quot;Hypertension&quot;)</code></pre>
-<img src="Linear-regression_files/figure-html/boxp3-1.png" width="624" />
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.timelimit":40,"exercise.checker":"NULL"}</script>
 </div>
 <strong>Exercise 6:</strong> create boxplot of bwt by categories of plt, race, ui and smoke variables. Try to use different ways of mentioning colors.
@@ -368,24 +365,6 @@ The summary above do not include confidence intervals. We can use stargazer pack
 <pre class="text"><code>lm1 &lt;- lm(bwt~age, data=lowbwt)
 
 stargazer(lm1, type=&quot;text&quot;, report=&quot;vcs&quot;, ci=TRUE, omit.table.layout =&quot;n&quot;, omit.stat = &quot;f&quot;)</code></pre>
-<pre><code>
-==========================================
-                     Dependent variable:  
-                    ----------------------
-                             bwt          
-------------------------------------------
-age                         12.364        
-                       (-7.276, 32.004)   
-                                          
-Constant                  2,657.333       
-                    (2,189.285, 3,125.380)
-                                          
-------------------------------------------
-Observations                 189          
-R2                          0.008         
-Adjusted R2                 0.003         
-Residual Std. Error   728.011 (df = 187)  
-==========================================</code></pre>
 <script type="application/json" data-opts-chunk="1">{"fig.width":6.5,"fig.height":4,"fig.retina":2,"fig.align":"default","fig.keep":"high","fig.show":"asis","out.width":624,"warning":true,"error":false,"message":true,"exercise.df_print":"paged","exercise.timelimit":40,"exercise.checker":"NULL"}</script>
 </div>
 <strong>Exercise 9:</strong> rerun the stargazer again without any options except the ‘type=“text”’, see what is the difference from the above output.
@@ -449,7 +428,7 @@ stargazer(mlr2, type=&quot;text&quot;, report=&quot;vcs&quot;, omit.table.layout
 <h3>Interpretation</h3>
 <p>Although the output shows estimates of coefficients for all covariate, because the (hypothetical) DAG was developed for a particular exposure of interest (lwt) we will only interpret the corresponding coefficient.</p>
 <ul>
-<li>One pound increase in maternal weight, at last menstural cycle before pregnancy, was associated with 4.8 grams (95%CI = 1.4, 8.2) increase in average birthweightof babies, when all other covariates are constant. 
+<li>One pound increase in maternal weight, at last menstural cycle before pregnancy, was associated with 4.8 grams (95%CI = 1.4, 8.2) increase in average birthweight of babies, when all other covariates are constant. 
 <script type="application/shiny-prerendered" data-context="server-start">
 library(learnr)
 knitr::opts_chunk$set(echo = TRUE)

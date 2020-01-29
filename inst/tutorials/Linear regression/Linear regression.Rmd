@@ -83,7 +83,7 @@ skimr::skim(lowbwt)
 
 **We can also visually inspect the distribution of variables** 
 Boxplot shows a 5 point summary of the distribution and qqplot show the normality of the variable.
-```{r boxp1, exercise=TRUE, exercise.eval=TRUE}
+```{r boxp1, exercise=TRUE}
 par(mfrow=c(1,2))
 boxplot(lowbwt$age, main="Boxplot of age")
 qqnorm(lowbwt$age, main="Q-Q plot of age")
@@ -111,7 +111,7 @@ As expected box-plots shows outliers. And QQ plot of weight hints us towards a n
 
 **We can also see the tabulation of the categorical variables**   
 Tableone package provides a quick way to create tables. We can store the table as a 'tab1' object and print it. 
-```{r tab1, exercise=TRUE, exercise.eval=F}
+```{r tab1, exercise=TRUE}
 
 tab1 <- CreateTableOne(data=lowbwt, 
                vars=c("ftv","ht","low","ptl"), 
@@ -139,7 +139,7 @@ print(tab2, showAllLevel=TRUE)
 We can use graphs to explore the raw patterns in the data
 Scatterplot between continuous variables in the dataset can give us an idea about their correlation.
 
-```{r cor0, exercise=TRUE, exercise.eval=TRUE}
+```{r cor0, exercise=TRUE}
 plot(lowbwt$age, lowbwt$lwt)
 ```
 
@@ -169,7 +169,7 @@ From both scatter plots and the estimates of correlation coefficient, we can see
 
 Boxplots is one way to see the distribution of a continuous variable by categories of another variable. 
 We can plot the variable bwt (our outcome of interest) by categories of ftv and ht as below.
-```{r boxp3, exercise=TRUE, exercise.eval=TRUE}
+```{r boxp3, exercise=TRUE}
 par(mfrow=c(1,2))
 
 boxplot(bwt~ftv, data=lowbwt, col=heat.colors(2),  ylab="birth weight", xlab="First trimester visits")
@@ -223,7 +223,7 @@ lm(bwt~age, data=lowbwt)
 
 #### Stargazer package
 The summary above do not include confidence intervals. We can use stargazer package to get nicely formated tables of the regression output. Just for clarity, first, we fit the regression again.
-```{r lm1s, exercise=TRUE, exercise.eval=TRUE}
+```{r lm1s, exercise=TRUE}
 
 lm1 <- lm(bwt~age, data=lowbwt)
 
