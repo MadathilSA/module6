@@ -199,7 +199,7 @@ print(tab2, showAllLevels=TRUE)
 Because most of the continuous variables are not normally distributed we will use spearman's correlation. 
 
 ```{r cor1, exercise=TRUE}
-corr1 <- corr(myopia[, c("age","spheq","al","acd","lt","vcd","sporthr")], method="spearman") %>%
+corr1 <- cor(myopia[, c("age","spheq","al","acd","lt","vcd","sporthr")], method="spearman") 
 round(corr1, digits = 2)
 ```
 
@@ -210,8 +210,8 @@ round(corr1, digits = 2)
 ```
 
 ```{r cor2-solution}
-corr <- corr(myopia[, c("age","spheq","al","acd","lt","vcd",'sporthr',"readhr",'comphr','studyhr','tvhr','diopterhr')],
-             method="spearman") %>%
+corr <- cor(myopia[, c("age","spheq","al","acd","lt","vcd",'sporthr',"readhr",'comphr','studyhr','tvhr','diopterhr')],
+             method="spearman") 
 round(corr, digits = 2)
 ```
 
