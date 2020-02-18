@@ -1,0 +1,322 @@
+---
+title: "Binary logistic regression"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(aplore3)
+library(tableone)
+library(stargazer)
+library(tidyverse)
+library(ggdag)
+knitr::opts_chunk$set(echo = TRUE, comment=NA)
+tutorial_options(exercise.timelimit=40)
+```
+
+## Context
+A cross sectional study was conducted to investigate the association between different activity levels and occurrence of myopia among school children of age between 5-9. 618 children were recruited and following variables were measured:  
+
+variable name | description
+---------------|------------
+age | Age (Years)
+gender | Gender (1: Male, 2: Female)
+spheq | Spherical Equivalent Refraction (diopter)
+al | Axial length (mm)
+acd | Anterior Chamber Depth (mm)
+lt | Lens Thickness (mm)
+vcd | Vitreous Chamber Depth (mm)
+sporthr | How many hours per week outside of school the child spent engaging in sports/outdoor activities (Hours per week)   
+readhr | How many hours per week outside of school the child spent reading for pleasure (Hours per week)     
+comphr | How many hours per week outside of school the child spent playing video/computer games or working on the computer (Hours per week)     
+studyhr | How many hours per week outside of school the child spent reading or studying for school assignments (Hours per week)    
+tvhr | How many hours per week outside of school the child spent watching television (Hours per week)    
+diopterhr | Composite of near-work activities (Hours per week)     
+mommy | Was the subject's mother myopic? (1: No, 2: Yes)    
+dadmy | Was the subject's father myopic? (1: No, 2: Yes)  
+
+### Research Question  
+**To estimate the extend to which hours spend outside school, engagin in sports/outdoor activity, is associated with risk of myopia among children below 10 years of age**
+
+### DAG
+
+Assuming that there are no unmeasured confounding between myopic and other variables in the data. We can construct a DAG as below. 
+We will also assume that this DAG is encode our current knowledge and is complete. 
+```{r}
+theme_set(theme_dag_blank())
+coords = list(
+        x = c(mommy=2, dadmy=2, sporthr=2, readhr=2, comphr=2, studyhr=2, tvhr=2, diopterhr=2, myopic=4,
+              age=1, gender=1, spheq=3, al=3, acd=3, lt=3, vcd=3),
+        y = c(mommy=-4, dadmy=-3, readhr=-2, comphr=-1, sporthr=0, studyhr=1, tvhr=2, diopterhr=3, myopic=0,
+              age=-1, gender=1, spheq=-4, al=-3, acd=-2, lt=2, vcd=3)
+)
+
+dag1 <- dagify(myopic ~ age+gender+mommy+dadmy+sporthr+readhr+comphr+studyhr+tvhr+diopterhr+spheq+al+acd+lt+vcd,
+               mommy ~~ sporthr ,
+               dadmy ~~ sporthr,
+               sporthr ~~ readhr,
+               sporthr ~~ comphr,
+               sporthr ~~ studyhr,
+               sporthr ~~ tvhr,
+               sporthr ~~ diopterhr,
+               sporthr ~ age+gender,
+               readhr ~ age+gender,
+               comphr ~ age+gender,
+               studyhr ~ age+gender,
+               tvhr ~ age+gender,
+               diopterhr ~ age+gender,
+               spheq ~ age+gender+sporthr,
+               al ~ age+gender+sporthr,
+               acd ~ age+gender+sporthr,
+               lt ~ age+gender+sporthr,
+               vcd ~ age+gender+sporthr,
+              exposure ="sporthr",
+              outcome = "myopic", coords = coords)
+```
+
+```{r,fig.align='center', fig.width=10, fig.height=8}
+ggdag(dag1, text_size =2.8, node=T)
+```
+
+To know which variables to adjust for in our model, we can use ```ggdag_adjustment_set()``` function.
+
+```{r,fig.align='center', fig.width=10, fig.height=8}
+ggdag_adjustment_set(dag1, text_size=2.8)
+```
+
+Because we are interested in the total effect of sporthr, we will not adjust for the descendants of sporthr. 
+
+## Descriptive statistics
+
+The data is available from the ```aplore3``` package. 
+We can load the necessary libraries and data as follows:
+```{r set2, exercise.eval=TRUE}
+library(learnr)
+library(aplore3)
+library(tableone)
+library(stargazer)
+library(tidyverse)
+data(myopia)
+```
+
+We look at the distribution of continuous variables
+
+```{r bp1, exercise=TRUE}
+layout(matrix(c(1:10), nrow=2, ncol=2, byrow = T))
+
+boxplot(myopia$age, main="Boxplot of age")
+hist(myopia$age)
+
+boxplot(myopia$al, main="Boxplot of al")
+hist(myopia$al)
+
+boxplot(myopia$acd, main="Boxplot of acd")
+hist(myopia$acd)
+
+boxplot(myopia$lt, main="Boxplot of lt")
+hist(myopia$lt)
+
+boxplot(myopia$vcd, main="Boxplot of vcd")
+hist(myopia$vcd)
+```
+
+**Exercise 1:** Use the same strategy to create boxplots for ```c("sporthr","readhr","comphr","studyhr","tvhr","diopterhr")```
+```{r bp2, exercise=TRUE}
+
+```
+
+```{r bp2-solution}
+layout(matrix(c(1:12), nrow=2, ncol=2, byrow = T))
+
+boxplot(myopia$sporthr)
+hist(myopia$sporthr)
+
+boxplot(myopia$readhr)
+hist(myopia$readhr)
+
+boxplot(myopia$comphr)
+hist(myopia$comphr)
+
+boxplot(myopia$studyhr)
+hist(myopia$studyhr)
+
+boxplot(myopia$tvhr)
+hist(myopia$tvhr)
+
+boxplot(myopia$diopterhr)
+hist(myopia$diopterhr)
+```
+
++ Most of the variables have outliers 
+
+For categorical variables we can tabulate them using the tableone package
+```{r}
+tab1 <- CreateTableOne(data=myopia, 
+                       vars=c("myopic","gender","mommy","dadmy"), includeNA = TRUE)
+print(tab1, showAllLevels=TRUE)
+```
+
++ Only 81 (13\%) participants have myopia. 
+
+### Bivariate statistics
+### Table 1
+We shall look at the distribution of all variables across the outcome.
+```{r tab1, exercise=TRUE}
+tab1 <- CreateTableOne(vars=c("age","gender","sporthr",
+                              "readhr","comphr"),
+                       strata = "myopic",
+                       data=myopia,
+                       includeNA=TRUE,
+                       test=FALSE)
+
+print(tab1, showAllLevels=TRUE)
+```
+
+**Excersise 2:** Create the tableone for variables ```c("studyhr","tvhr","diopterhr", "mommy","dadmy")```
+
+```{r tab2, exercise=TRUE}
+
+```
+
+
+```{r tab2-solution}
+tab2<- CreateTableOne(vars=c("studyhr","tvhr","diopterhr", "mommy","dadmy"),
+                       strata = "myopic",
+                       data=myopia,
+                       includeNA=TRUE,
+                       test=FALSE)
+
+print(tab2, showAllLevels=TRUE)
+```
+
++ Myopic kids had more average hours in sport/outdoor activity
++ There are slightly more Female kids among myopic group
++ Myopic kids had high proportion of participants with family history of myopia
++ There are no missing values in any of the variables
+
+### Correlations
+Because most of the continuous variables are not normally distributed we will use spearman's correlation. 
+
+```{r cor1, exercise=TRUE}
+corr1 <- corr(myopia[, c("age","spheq","al","acd","lt","vcd","sporthr")], method="spearman") %>%
+round(corr1, digits = 2)
+```
+
+**Exercise 3:** Create the correlation matrix of all continuous variables in the data.
+```{r cor2, exercise=TRUE}
+
+
+```
+
+```{r cor2-solution}
+corr <- corr(myopia[, c("age","spheq","al","acd","lt","vcd",'sporthr',"readhr",'comphr','studyhr','tvhr','diopterhr')],
+             method="spearman") %>%
+round(corr, digits = 2)
+```
+
++ vcd is highly correlated with al
++ Diopterhr variable seems to have moderate level correlations with some other activity variables
+
+## logistic regressions
+
+### Univariate binary logistic regressions
+We will regress each independant variable on the outcome 
+```{r un1, exercise=TRUE}
+uniregs <- list()
+uniregs[[1]] <- glm(myopic ~ age, data=myopia, family=binomial(link="logit"))
+uniregs[[2]] <- glm(myopic ~ gender, data=myopia, family=binomial(link="logit"))
+uniregs[[3]] <- glm(myopic ~ sporthr, data=myopia, family=binomial(link="logit"))
+uniregs[[4]] <- glm(myopic ~ readhr, data=myopia, family=binomial(link="logit"))
+uniregs[[5]] <- glm(myopic ~ studyhr, data=myopia, family=binomial(link="logit"))
+
+
+stargazer(uniregs[1:5], type="text", report="vcs", ci=TRUE, omit.table.layout = "n", digits=2)
+```
+
+**Exercise 4:** Follow the same startegy as above and add the univariate regression outputs for rest of the potential confounders to the same object ```uniregs``` and print the coefficients.
+
+```{r uni2, exercise=TRUE}
+
+```
+
+
+```{r uni2-solution}
+uniregs[[6]] <- glm(myopic ~ tvhr, data=myopia, family=binomial(link="logit"))
+uniregs[[7]] <- glm(myopic ~ diopterhr, data=myopia, family=binomial(link="logit"))
+uniregs[[8]] <- glm(myopic ~ mommy, data=myopia, family=binomial(link="logit"))
+uniregs[[9]] <- glm(myopic ~ dadmy, data=myopia, family=binomial(link="logit"))
+uniregs[[10]] <- glm(myopic ~ comphr, data=myopia, family=binomial(link="logit"))
+
+
+stargazer(uniregs[6:10], type="text", report="vcs", ci=TRUE, omit.table.layout = "n", digits=2)
+
+```
+
++ age, gender(female), readhr, comphr, diopterhr, mommy, dadmy show positive association with myopic state
++ sporthr show negative association
++ interestingly, studyhr and tvhr show a negative association!
+
+### Multivariable binary logistic regression
+Now we can build our multivariable logistic regression model as follows:
+
+```{r}
+glm <- glm(myopic ~ age + gender + mommy + dadmy + 
+              sporthr + readhr + comphr + studyhr + tvhr + diopterhr , 
+            data=myopia, family=binomial(link="logit"))
+stargazer(glm, type="text", report="vcs", ci=TRUE, omit.table.layout = "n", digits=2)
+```
+
+**The diopterhr variable do not have a coefficient. Probably due to high collinearity R took it out**  
+
+
+**We need to report the effect measures in Odds ratio scale**. 
+An example with only one independent variable:
+
+```{r glm1, exercise=TRUE}
+glm1 <- glm(myopic ~ sporthr, 
+            data=myopia, family=binomial(link="logit"))
+
+# Exponentiate the logodds (betas) to odds ratios
+
+ors <- exp(coef(glm1))
+
+# Compute their confidence intervals
+cis <- exp(confint.default(glm1))
+
+# Use the above objects in stargazer
+stargazer(glm1, type="text", report="vcs", 
+          coef=list(ors), 
+          ci.custom = list(cis), 
+          omit.table.layout = "n", 
+          digits=2)
+```
+
+**Exercise 5:** Add all the potential confounders (except diopterhr) and re-fit the model and report the results in odds ratios
+```{r od1, exercise=TRUE}
+
+
+```
+
+```{r od1-solution}
+glm2 <- glm(myopic ~ age + gender + mommy + dadmy + 
+              sporthr + readhr + comphr + studyhr + tvhr, 
+            data=myopia, family=binomial(link="logit"))
+
+# Exponentiate the logodds (betas) to odds ratios
+
+ors2 <- exp(coef(glm2))
+
+# Compute their confidence intervals
+cis2 <- exp(confint.default(glm2))
+
+# Use the above objects in stargazer
+stargazer(glm2, type="text", report="vcs", 
+          coef=list(ors2), 
+          ci.custom = list(cis2), 
+          omit.table.layout = "n", 
+          digits=2)
+```
+
+### Interpretation 
+Each hour increase in hours spend outside school, engaging in sports/outdoor activities, per week decreased the odds of myopia by a factor of 0.96 (OR = 0.06, 95\%CI = 0.93, 0.99). 
